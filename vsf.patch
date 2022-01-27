@@ -1,0 +1,61 @@
+ inftrees.c | 14 ++++++++++++++
+ zconf.h    |  7 +++++++
+ 2 files changed, 21 insertions(+)
+
+diff --git a/inftrees.c b/inftrees.c
+index 2ea08fc..7b3f241 100644
+--- a/inftrees.c
++++ b/inftrees.c
+@@ -6,6 +6,12 @@
+ #include "zutil.h"
+ #include "inftrees.h"
+ 
++#ifdef __VSF__
++// for __IS_COMPILER_XXX__ MACROs
++#   define __VSF_HEADER_ONLY_SHOW_COMPILER_INFO__
++#   include "utilities/compiler/compiler.h"
++#endif
++
+ #define MAXBITS 15
+ 
+ const char inflate_copyright[] =
+@@ -29,6 +35,13 @@ const char inflate_copyright[] =
+    table index bits.  It will differ if the request is greater than the
+    longest code or if it is less than the shortest code.
+  */
++#if __IS_COMPILER_IAR__
++// original code will issue error in IAR
++//  declaration is incompatible with ....
++int ZLIB_INTERNAL inflate_table (codetype type, unsigned short FAR *lens,
++                             unsigned codes, code FAR * FAR *table,
++                             unsigned FAR *bits, unsigned short FAR *work)
++#else
+ int ZLIB_INTERNAL inflate_table(type, lens, codes, table, bits, work)
+ codetype type;
+ unsigned short FAR *lens;
+@@ -36,6 +49,7 @@ unsigned codes;
+ code FAR * FAR *table;
+ unsigned FAR *bits;
+ unsigned short FAR *work;
++#endif
+ {
+     unsigned len;               /* a code's length in bits */
+     unsigned sym;               /* index of code symbols */
+diff --git a/zconf.h b/zconf.h
+index 5e1d68a..0255259 100644
+--- a/zconf.h
++++ b/zconf.h
+@@ -8,6 +8,13 @@
+ #ifndef ZCONF_H
+ #define ZCONF_H
+ 
++#ifdef __VSF__
++#   ifdef __WIN__
++#       undef _WIN32
++#       undef _MSC_VER
++#   endif
++#endif
++
+ /*
+  * If you *really* need a unique prefix for all types and library functions,
+  * compile with -DZ_PREFIX. The "standard" zlib should be compiled without it.
